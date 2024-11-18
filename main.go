@@ -1,37 +1,105 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"math/rand/v2"
+	"net/url"
+	"time"
+)
 
-func main() {
-	array := [6]int{1, 2, 3, 4, 5, 6}
-	revers(&array)
-	fmt.Println(array)
-	//fmt.Println(a)
+type account struct {
+	login    string
+	password string
+	url      string
 }
 
-func revers(array *[6]int) {
-	//этот подход экономит использование памяти и более рациональный
-	/*Использующий обмен элементов на месте, остается предпочтительным,
-	поскольку:
-	Гарантирует корректность результата в любых условиях.
-	Не зависит от особенностей работы range.
-	Более эффективен (не создает временные массивы).*/
+type accountWithTimeStemp struct {
+	createAt time.Time
+	updateAt time.Time
+	account
+}
 
-	/*n := len(*array)
-	for i := 0; i < n/2; i++ {
-		(*array)[i], (*array)[n-1-i] = (*array)[n-1-i], (*array)[i]
-	}*/
+func (acc account) outputPass() {
+	fmt.Println(acc)
+	fmt.Println(acc.login, acc.password, acc.url)
+}
 
-	/*Этот метод работает только при следующих условиях:
-	Вы полностью перезаписываете массив, то есть длина массива (n) — фиксированная, и весь массив участвует в итерации.
-	Итерации не зависят от уже измененных значений.
-	Но если потребуется:
-	Работа с частичным реверсом массива.
-	Изменение алгоритма итерации (например, обратный порядок или другой шаг).
-	Более сложная структура данных.
-	В таких случаях текущий подход может привести к ошибкам.*/
+func (acc *account) generatePassword(n int) {
+	arrayPass := make([]rune, n, n)
 
-	for index, value := range *array {
-		(*array)[len(array)-1-index] = value
+	for i := range arrayPass {
+		arrayPass[i] = letters[rand.IntN(len(letters))]
 	}
+	acc.password = string(arrayPass)
+}
+
+/* func newAccount(login, password, urlString string) (*account, error) {
+	if login == "" {
+		return nil, errors.New("INVALID_LOGIN")
+
+	}
+	_, err := url.ParseRequestURI(urlString)
+	if err != nil {
+		return nil, errors.New("INVALID_URL")
+	}
+	newAcc := &account{
+		login:    login,
+		password: password,
+		url:      urlString,
+	}
+	if password == "" {
+		newAcc.generatePassword(12)
+	}
+	return newAcc, nil
+} */
+
+func newAccountWithTimeStemp(login, password, urlString string) (*accountWithTimeStemp, error) {
+	if login == "" {
+		return nil, errors.New("INVALID_LOGIN")
+	}
+	_, err := url.ParseRequestURI(urlString)
+	if err != nil {
+		return nil, errors.New("INVALID_URL")
+	}
+	newAcc := &accountWithTimeStemp{
+		createAt: time.Now(),
+		updateAt: time.Now(),
+		account: account{
+			login:    login,
+			password: password,
+			url:      urlString,
+		},
+	}
+	if password == "" {
+		newAcc.account.generatePassword(12)
+	}
+	return newAcc, nil
+}
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890*!")
+
+func main() {
+	login := promptData("Введите логин: ")
+	password := promptData("Введите пароль: ")
+	url := promptData("Введите URL: ")
+
+	MyAccount, err := newAccountWithTimeStemp(login, password, url)
+	if err != nil {
+		fmt.Print("Не указан логин или не верный формат URL")
+		return
+	}
+	MyAccount.outputPass()
+}
+
+func promptData(prompt string) string {
+	fmt.Print(prompt)
+	var res string
+	fmt.Scanln(&res)
+	return res
+}
+
+func outputPass(acc *account) {
+	fmt.Println(*acc)
+	fmt.Println(acc.login, acc.password, acc.url)
 }
