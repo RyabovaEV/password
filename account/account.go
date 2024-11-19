@@ -1,3 +1,4 @@
+// Package account создание пакета
 package account
 
 import (
@@ -14,16 +15,11 @@ var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ123456
 
 // Account структура аккаунта
 type Account struct {
-	login    string
-	password string
-	url      string
-}
-
-// AccountWithTimeStemp доп параметры для аккаунта
-type AccountWithTimeStemp struct {
-	createAt time.Time
-	updateAt time.Time
-	Account
+	Login    string    `json:"login"`
+	Password string    `json:"password"`
+	Url      string    `json:"url"`
+	CreateAt time.Time `json:"createAt"`
+	UpdateAt time.Time `json:"updateAt"`
 }
 
 func (acc *Account) generatePassword(n int) {
@@ -32,10 +28,11 @@ func (acc *Account) generatePassword(n int) {
 	for i := range arrayPass {
 		arrayPass[i] = letters[rand.IntN(len(letters))]
 	}
-	acc.password = string(arrayPass)
+	acc.Password = string(arrayPass)
 }
 
-/* func newAccount(login, password, urlString string) (*account, error) {
+// NewAccount создание аккаунта
+func NewAccount(login, password, urlString string) (*Account, error) {
 	if login == "" {
 		return nil, errors.New("INVALID_LOGIN")
 
@@ -44,37 +41,15 @@ func (acc *Account) generatePassword(n int) {
 	if err != nil {
 		return nil, errors.New("INVALID_URL")
 	}
-	newAcc := &account{
-		login:    login,
-		password: password,
-		url:      urlString,
+	newAcc := &Account{
+		Login:    login,
+		Password: password,
+		Url:      urlString,
+		CreateAt: time.Now(),
+		UpdateAt: time.Now(),
 	}
 	if password == "" {
 		newAcc.generatePassword(12)
-	}
-	return newAcc, nil
-} */
-
-// NewAccountWithTimeStemp создание аккаунта со структурой AccountWithTimeStemp
-func NewAccountWithTimeStemp(login, password, urlString string) (*AccountWithTimeStemp, error) {
-	if login == "" {
-		return nil, errors.New("INVALID_LOGIN")
-	}
-	_, err := url.ParseRequestURI(urlString)
-	if err != nil {
-		return nil, errors.New("INVALID_URL")
-	}
-	newAcc := &AccountWithTimeStemp{
-		createAt: time.Now(),
-		updateAt: time.Now(),
-		Account: Account{
-			login:    login,
-			password: password,
-			url:      urlString,
-		},
-	}
-	if password == "" {
-		newAcc.Account.generatePassword(12)
 	}
 	return newAcc, nil
 }
@@ -82,6 +57,6 @@ func NewAccountWithTimeStemp(login, password, urlString string) (*AccountWithTim
 // OutputPass вывод созданного аккаунта на экран
 func (acc *Account) OutputPass() {
 	fmt.Println(*acc)
-	color.Cyan(acc.login)
-	fmt.Println(acc.login, acc.password, acc.url)
+	color.Cyan(acc.Login)
+	fmt.Println(acc.Login, acc.Password, acc.Url)
 }
