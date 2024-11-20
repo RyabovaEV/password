@@ -26,6 +26,7 @@ var menuVariants = []string{
 	"5 - выход",
 }
 
+// menuCounter функция замыкания
 func menuCounter() func() {
 	i := 0
 	return func() {
