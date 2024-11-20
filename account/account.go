@@ -3,7 +3,6 @@ package account
 
 import (
 	"errors"
-	"fmt"
 	"math/rand/v2"
 	"net/url"
 	"time"
@@ -56,7 +55,7 @@ func NewAccount(login, password, urlString string) (*Account, error) {
 
 // OutputPass вывод созданного аккаунта на экран
 func (acc *Account) OutputPass() {
-	fmt.Println(*acc)
 	color.Cyan(acc.Login)
-	fmt.Println(acc.Login, acc.Password, acc.URL)
+	color.Cyan(acc.Password)
+	color.Cyan(acc.URL)
 }
