@@ -2,9 +2,12 @@ package account
 
 import (
 	"encoding/json"
+	"password/encrypter"
 	"password/output"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 // ByteReader интерфейс чтения
@@ -32,11 +35,12 @@ type Vault struct {
 // VaultWithDB структура контейнера с учетом БД
 type VaultWithDB struct {
 	Vault
-	db Db
+	db  Db
+	enc encrypter.Encrypter
 }
 
 // NewVault создание контейнера для хранения паролей
-func NewVault(db Db) *VaultWithDB {
+func NewVault(db Db, enc encrypter.Encrypter) *VaultWithDB {
 	file, err := db.Read()
 	if err != nil {
 		return &VaultWithDB{
@@ -44,24 +48,30 @@ func NewVault(db Db) *VaultWithDB {
 				Accounts: []Account{},
 				UpdateAt: time.Now(),
 			},
-			db: db,
+			db:  db,
+			enc: enc,
 		}
 	}
+
+	data := enc.Decrypt(file)
 	var vault Vault
-	err = json.Unmarshal(file, &vault)
+	err = json.Unmarshal(data, &vault)
+	color.HiCyan("Найдено %d aккaунтов", len(vault.Accounts))
 	if err != nil {
-		output.PrintError("Не удалось разобрать файл data.json")
+		output.PrintError("Не удалось разобрать файл data.vault")
 		return &VaultWithDB{
 			Vault: Vault{
 				Accounts: []Account{},
 				UpdateAt: time.Now(),
 			},
-			db: db,
+			db:  db,
+			enc: enc,
 		}
 	}
 	return &VaultWithDB{
 		Vault: vault,
 		db:    db,
+		enc:   enc,
 	}
 }
 
@@ -114,10 +124,11 @@ func (vault *VaultWithDB) save() {
 	//vault.Accounts = accounts
 	vault.UpdateAt = time.Now()
 	data, err := vault.ToBytes()
+	encData := vault.enc.Encrypt(data)
 	if err != nil {
 		output.PrintError("Не удалось преобразовать")
 		//color.Red("")
 	}
-	vault.db.Write(data)
+	vault.db.Write(encData)
 	//db.Write(data)
 }

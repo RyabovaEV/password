@@ -4,11 +4,13 @@ package main
 import (
 	"fmt"
 	"password/account"
+	"password/encrypter"
 	"password/files"
 	"password/output"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/joho/godotenv"
 )
 
 var menu = map[string]func(*account.VaultWithDB){
@@ -26,23 +28,16 @@ var menuVariants = []string{
 	"5 - выход",
 }
 
-// menuCounter функция замыкания
-func menuCounter() func() {
-	i := 0
-	return func() {
-		i++
-		fmt.Println(i)
-	}
-}
-
 func main() {
 	fmt.Println("__Менеджер паролей__")
-	vault := account.NewVault(files.NewJsonDB("data.json"))
-	counter := menuCounter()
+	err := godotenv.Load()
+	if err != nil {
+		output.PrintError("Не удалось найти ENV файл")
+	}
+	vault := account.NewVault(files.NewJsonDB("data.vault"), *encrypter.NewEncrypter())
 	//vault := account.NewVault(cloud.NewCloudDB("http://d.ry"))
 Menu:
 	for {
-		counter()
 		variant := promptData(menuVariants...)
 		menuFunc := menu[variant]
 		if menuFunc == nil {
